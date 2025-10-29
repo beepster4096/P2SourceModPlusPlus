@@ -48,6 +48,7 @@ private:
 	// Plugin state member variables.
 	bool		m_bPluginLoaded;
 	bool		m_bNoUnload;
+	bool        m_bIllegalUnload;
 };
 
 static CP2SMPlusPlusPlugin g_P2SMPlusPlusPlugin;

@@ -9,6 +9,7 @@
 #include "globals.hpp"
 #include "sdk.hpp"
 #include "scanner.hpp" // Memory scanner
+#include "vscript.hpp"
 
 #include "cdll_int.h" // Client interfacing
 #include "eiface.h" // Server interfacing
@@ -242,6 +243,11 @@ void CP2SMPlusPlusPlugin::Unload(void)
 		return;
 	}
 
+	if (m_bIllegalUnload)
+	{
+		Log(ERRORR, false, "P2SM++ cannot be safely unloaded right now!");
+	}
+
 	Log(INFO, false, "Unloading Plugin...");
 
 	try
@@ -307,17 +313,24 @@ void CP2SMPlusPlusPlugin::ClientFullyConnect(edict_t* pEntity)
 	Log(WARNING, true, "r_drawscreenoverlay set!");
 }
 
+void CP2SMPlusPlusPlugin::ServerActivate(edict_t* pEdictList, int edictCount, int clientMax) {
+	VScript::RegisterFuncsAndRun();
+	m_bIllegalUnload = true;
+}
+
+void CP2SMPlusPlusPlugin::LevelShutdown(void) {
+	m_bIllegalUnload = false;
+}
+
 //---------------------------------------------------------------------------------
 // Purpose: Unused callbacks
 //---------------------------------------------------------------------------------
 #pragma region UNUSED_CALLBACKS
 void CP2SMPlusPlusPlugin::SetCommandClient(int index) {}
-void CP2SMPlusPlusPlugin::ServerActivate(edict_t* pEdictList, int edictCount, int clientMax) {}
 void CP2SMPlusPlusPlugin::LevelInit(char const* pMapName) {}
 PLUGIN_RESULT CP2SMPlusPlusPlugin::ClientCommand(edict_t* pEntity, const CCommand& args) { return PLUGIN_CONTINUE; }
 void CP2SMPlusPlusPlugin::ClientActive(edict_t* pEntity) {}
 void CP2SMPlusPlusPlugin::GameFrame(bool simulating) {}
-void CP2SMPlusPlusPlugin::LevelShutdown(void) {}
 void CP2SMPlusPlusPlugin::Pause(void) {}
 void CP2SMPlusPlusPlugin::UnPause(void) {}
 void CP2SMPlusPlusPlugin::ClientDisconnect(edict_t* pEntity) {}

@@ -158,12 +158,14 @@
     <ClCompile Include="p2sm.cpp" />
     <ClCompile Include="scanner.cpp" />
     <ClCompile Include="sdk.cpp" />
+    <ClCompile Include="vscript.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="globals.hpp" />
     <ClInclude Include="p2sm.hpp" />
     <ClInclude Include="scanner.hpp" />
     <ClInclude Include="sdk.hpp" />
+    <ClInclude Include="vscript.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

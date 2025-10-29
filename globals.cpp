@@ -19,7 +19,7 @@ IVEngineServer*			engineServer = nullptr;
 IVEngineClient*			engineClient = nullptr;
 CGlobalVars*			g_pGlobals   = nullptr;
 IPlayerInfoManager*		g_pPlayerInfoManager = nullptr;
-// IScriptVM*				g_pScriptVM;
+IScriptVM*				g_pScriptVM = nullptr;
 //IServerTools*			g_pServerTools = nullptr;
 // IGameEventManager2*		g_pGameEventManager_;
 //IServerPluginHelpers*	g_pPluginHelpers = nullptr;

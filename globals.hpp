@@ -88,7 +88,7 @@ extern IVEngineServer*			engineServer;
 extern IVEngineClient*			engineClient;
 extern CGlobalVars*				g_pGlobals;
 extern IPlayerInfoManager*		g_pPlayerInfoManager;
-// extern IScriptVM*			g_pScriptVM;
+extern IScriptVM*				g_pScriptVM;
 // extern IServerTools*			g_pServerTools;
 // extern IGameEventManager2*	g_pGameEventManager_;
 // extern IServerPluginHelpers*	g_pPluginHelpers;
