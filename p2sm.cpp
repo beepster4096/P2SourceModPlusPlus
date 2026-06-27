@@ -133,14 +133,15 @@ bool CP2SMPlusPlusPlugin::Load(CreateInterfaceFn interfaceFactory, CreateInterfa
 		    &CUGCFileRequestManager__Update_hook, reinterpret_cast<void**>(&CUGCFileRequestManager__Update_orig)
 		);
 
-		// Stop env_projectedtexture entities from getting disabled when more than one is active.
-		//! Engine limit still exists though with a max of eight env_projectedtextures.
-		//Log(INFO, true, "Hooking CEnvProjectedTexture::EnforceSingleProjectionRules...");
-		//! Currently crashes, hook is incorrect most likely even though I checked sig is correct and parameters match up with what is in code.
-		// MH_CreateHook(
-		// 	Memory::Scanner::Scan(SERVERDLL, "55 8B EC 83 EC 14 53 56 57 68 B8 6F 5D 10"),
-		// 	&CEnvProjectedTexture__EnforceSingleProjectionRules_hook, reinterpret_cast<void**>(&CEnvProjectedTexture__EnforceSingleProjectionRules_orig)
-		// );
+		// CClientShadowMgr::CalculateRenderTargetsAndSizes
+		Memory::ReplacePattern("client", "F7 D8 1B C0 83 E0 07 40 5F", "B8 08 00 00 00 90 90 90 5F"); // Force the number of max projected texture to be 8.
+		Log(INFO, true, "Increasing shadow map resolution for projected textures...");
+		Memory::ReplacePattern("client", "0F 95 C3 89 8E", "0F 94 C3 89 8E"); // Allow for higher resolution shadow maps without tools mode.	
+
+		Log(INFO, true, "Patching all projected textures to have volumetrics...");
+		// CShadowMgr::DrawVolumetrics
+		// TODO: Make volumetric intensity customizable.
+		Memory::ReplacePattern("engine", "0F 85 47 0C 00 00 80 BF 10 02 00 00 00 0F 84 3A 0C 00 00", "0F 84 47 0C 00 00 80 BF 10 02 00 00 00 0F 85 3A 0C 00 00"); // Make volumetrics work for projected textures.
 #else // Linux Hooking. Due to the way this plugin is structured, it's currently not possible to compile this for Linux. Literally 1984 I know, but I don't have enough time or experience to figure it out by myself. One day.
 #endif // _WIN32
 
