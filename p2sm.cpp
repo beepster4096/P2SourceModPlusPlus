@@ -92,6 +92,12 @@ bool CP2SMPlusPlusPlugin::Load(CreateInterfaceFn interfaceFactory, CreateInterfa
 		// Helps add some more leeway to some things we do in VScript without the engine complaining and shutting down the rest of the script.
 		Log(INFO, true, "Patching max runtime for VScript...");
 		Memory::ReplacePattern("vscript", "00 00 00 E0 51 B8 9E 3F", "9a 99 99 99 99 99 a9 3f");
+
+		// lasers are too long, causing an issue when portals are on both sides of a thin surface
+		Log(INFO, true, "Patching laser length (server)...");
+		Memory::ReplacePattern("server", "D7 B3 5D 47", "00 00 C8 45"); // 56755.83984375 -> 6400.0
+		Log(INFO, true, "Patching laser length (client)...");
+		Memory::ReplacePattern("client", "D7 B3 5D 47", "00 00 C8 45"); // 56755.83984375 -> 6400.0
 #else // Linux Hooking. Due to the way this plugin is structured, it's currently not possible to compile this for Linux. Literally 1984 I know, but I don't have enough time or experience to figure it out by myself. One day.
 #endif
 
