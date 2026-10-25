@@ -27,7 +27,7 @@ class CWorkshopManager;
 class CEnvProjectedTexture;
 
 // Color macros for console printing.
-#define P2SMPLUSPLUS_PLUGIN_VERSION "1.1.1-divinity" // Update this when a new version of the plugin is released.
+#define P2SMPLUSPLUS_PLUGIN_VERSION "divinity.2" // Update this when a new version of the plugin is released.
 #define P2SMPLUSPLUS_PLUGIN_CONSOLE_COLOR  Color(100, 192, 252, 255) // Light Blue
 
 #define CUR_MAPFILE_NAME STRING(g_pGlobals->mapname)

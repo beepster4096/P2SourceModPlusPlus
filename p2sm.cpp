@@ -95,9 +95,9 @@ bool CP2SMPlusPlusPlugin::Load(CreateInterfaceFn interfaceFactory, CreateInterfa
 
 		// lasers are too long, causing an issue when portals are on both sides of a thin surface
 		Log(INFO, true, "Patching laser length (server)...");
-		Memory::ReplacePattern("server", "D7 B3 5D 47", "00 00 C8 45"); // 56755.83984375 -> 6400.0
+		//Memory::ReplacePattern("server", "D7 B3 5D 47", "00 00 C8 45"); // 56755.83984375 -> 6400.0
 		Log(INFO, true, "Patching laser length (client)...");
-		Memory::ReplacePattern("client", "D7 B3 5D 47", "00 00 C8 45"); // 56755.83984375 -> 6400.0
+		//Memory::ReplacePattern("client", "D7 B3 5D 47", "00 00 C8 45"); // 56755.83984375 -> 6400.0
 #else // Linux Hooking. Due to the way this plugin is structured, it's currently not possible to compile this for Linux. Literally 1984 I know, but I don't have enough time or experience to figure it out by myself. One day.
 #endif
 
