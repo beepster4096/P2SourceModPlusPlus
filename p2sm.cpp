@@ -86,18 +86,30 @@ bool CP2SMPlusPlusPlugin::Load(CreateInterfaceFn interfaceFactory, CreateInterfa
 #if _WIN32
 		// When a player, both client or host, goes through a linked_portal_door entity in multiplayer, the host will crash. This fixes that.
 		Log(INFO, true, "Fixing linked portal doors for multiplayer...");
-		Memory::ReplacePattern("server", "0F B6 87 04 05 00 00 8B 16", "EB 14 87 04 05 00 00 8B 16");
+		Memory::PatchPattern("server", "0F B6 87 04 05 00 00 8B 16", "EB 14 87 04 05 00 00 8B 16");
 
 		// Increase runtime max from 0.03 to 0.05.
 		// Helps add some more leeway to some things we do in VScript without the engine complaining and shutting down the rest of the script.
 		Log(INFO, true, "Patching max runtime for VScript...");
-		Memory::ReplacePattern("vscript", "00 00 00 E0 51 B8 9E 3F", "9a 99 99 99 99 99 a9 3f");
+		Memory::PatchPattern("vscript", "00 00 00 E0 51 B8 9E 3F", "9a 99 99 99 99 99 a9 3f");
 
 		// lasers are too long, causing an issue when portals are on both sides of a thin surface
-		Log(INFO, true, "Patching laser length (server)...");
+		//Log(INFO, true, "Patching laser length (server)...");
 		//Memory::ReplacePattern("server", "D7 B3 5D 47", "00 00 C8 45"); // 56755.83984375 -> 6400.0
-		Log(INFO, true, "Patching laser length (client)...");
+		//Log(INFO, true, "Patching laser length (client)...");
 		//Memory::ReplacePattern("client", "D7 B3 5D 47", "00 00 C8 45"); // 56755.83984375 -> 6400.0
+
+		Log(INFO, true, "Patching laser length (server)...");
+
+		static float LASER_BUG_PATCHED_TRACE_LENGTH = 6400.0;
+		float* newPtr = &LASER_BUG_PATCHED_TRACE_LENGTH;
+		auto newPtrBytes = std::as_bytes(std::span{ &newPtr, 1 });
+
+		void* laserBugPatchAddr1 = Memory::Scanner::Scan(SERVERDLL, "14 28 ?? ?? F3 0F 10 18 F3 0F 10 40 04 F3 0F 10 48 08");
+		Memory::PatchBytes(laserBugPatchAddr1, newPtrBytes);
+
+		void* laserBugPatchAddr2 = Memory::Scanner::Scan(SERVERDLL, "14 28 ?? ?? F3 0F 10 4D BC F3 0F 10 55 C0 F3 0F 10 5D C4");
+		Memory::PatchBytes(laserBugPatchAddr2, newPtrBytes);
 #else // Linux Hooking. Due to the way this plugin is structured, it's currently not possible to compile this for Linux. Literally 1984 I know, but I don't have enough time or experience to figure it out by myself. One day.
 #endif
 
@@ -140,14 +152,14 @@ bool CP2SMPlusPlusPlugin::Load(CreateInterfaceFn interfaceFactory, CreateInterfa
 		);
 
 		// CClientShadowMgr::CalculateRenderTargetsAndSizes
-		Memory::ReplacePattern("client", "F7 D8 1B C0 83 E0 07 40 5F", "B8 08 00 00 00 90 90 90 5F"); // Force the number of max projected texture to be 8.
+		Memory::PatchPattern("client", "F7 D8 1B C0 83 E0 07 40 5F", "B8 08 00 00 00 90 90 90 5F"); // Force the number of max projected texture to be 8.
 		Log(INFO, true, "Increasing shadow map resolution for projected textures...");
-		Memory::ReplacePattern("client", "0F 95 C3 89 8E", "0F 94 C3 89 8E"); // Allow for higher resolution shadow maps without tools mode.	
+		Memory::PatchPattern("client", "0F 95 C3 89 8E", "0F 94 C3 89 8E"); // Allow for higher resolution shadow maps without tools mode.	
 
 		Log(INFO, true, "Patching all projected textures to have volumetrics...");
 		// CShadowMgr::DrawVolumetrics
 		// TODO: Make volumetric intensity customizable.
-		Memory::ReplacePattern("engine", "0F 85 47 0C 00 00 80 BF 10 02 00 00 00 0F 84 3A 0C 00 00", "0F 84 47 0C 00 00 80 BF 10 02 00 00 00 0F 85 3A 0C 00 00"); // Make volumetrics work for projected textures.
+		Memory::PatchPattern("engine", "0F 85 47 0C 00 00 80 BF 10 02 00 00 00 0F 84 3A 0C 00 00", "0F 84 47 0C 00 00 80 BF 10 02 00 00 00 0F 85 3A 0C 00 00"); // Make volumetrics work for projected textures.
 #else // Linux Hooking. Due to the way this plugin is structured, it's currently not possible to compile this for Linux. Literally 1984 I know, but I don't have enough time or experience to figure it out by myself. One day.
 #endif // _WIN32
 
@@ -255,12 +267,7 @@ void CP2SMPlusPlusPlugin::Unload(void)
 	{
 #if _WIN32
 		Log(INFO, true, "Un-patching game patches...");
-
-		Log(INFO, true, "Un-patching linked portal doors...");
-		Memory::ReplacePattern("server", "EB 14 87 04 05 00 00 8B 16", "0F B6 87 04 05 00 00 8B 16");
-
-		Log(INFO, true, "Un-patching max runtime for VScript...");
-		Memory::ReplacePattern("vscript", "00 00 00 00 00 00 E0 3F", "00 00 00 E0 51 B8 9E 3F");
+		Memory::UnpatchAll();
 
 		Log(INFO, true, "Disconnecting hooked functions and un-initializing MinHook...");
 		MH_DisableHook(MH_ALL_HOOKS);
