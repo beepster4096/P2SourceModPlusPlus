@@ -401,13 +401,13 @@ namespace Memory {
 		}
 	}
 
-	void Write(void* target_addr, const void* data, size_t data_size)
+	void Write(void* targetAddr, std::span<std::byte const> data)
 	{
 		DWORD oldprotect = 0;
 		DWORD newprotect = PAGE_EXECUTE_READWRITE;
-		VirtualProtect(target_addr, data_size, newprotect, &oldprotect);
-		memcpy_s(target_addr, data_size, data, data_size);
-		VirtualProtect(target_addr, data_size, oldprotect, &newprotect);
+		VirtualProtect(targetAddr, data.size(), newprotect, &oldprotect);
+		memcpy_s(targetAddr, data.size(), data.data(), data.size());
+		VirtualProtect(targetAddr, data.size(), oldprotect, &newprotect);
 	}
 
 	void ReplacePattern(std::string target_module, std::string patternBytes, std::string replace_with)
@@ -422,15 +422,88 @@ namespace Memory {
 			return;
 		}
 
-		std::vector<uint8_t> replace;
+		std::vector<std::byte> replace;
 
 		std::istringstream patternStream(replace_with);
 		std::string patternByte;
 		while (patternStream >> patternByte)
 		{
-			replace.push_back((uint8_t)std::stoul(patternByte, nullptr, 16));
+			replace.push_back((std::byte)std::stoul(patternByte, nullptr, 16));
 		}
 
-		Memory::Write(addr, replace.data(), replace.size());
+		Memory::Write(addr, replace);
+	}
+
+	class Unpatch {
+		void* addr;
+		std::vector<std::byte> origData;
+
+		static std::vector<Unpatch> allUnpatches;
+
+		Unpatch(void* addr, std::vector <std::byte> origData) : addr(addr), origData(origData)
+		{}
+
+	public:
+		static Unpatch Read(void* addr, size_t size) {
+			std::byte* ptr = reinterpret_cast<std::byte*>(addr);
+			std::vector<std::byte> data(ptr, ptr + size);
+
+			return Unpatch{ addr, data };
+		}
+
+		static void Save(void* addr, size_t size) {
+			allUnpatches.push_back(Unpatch::Read(addr, size));
+		}
+
+		void Execute() const {
+			Memory::Write(this->addr, this->origData);
+		}
+
+		static void ExecuteAll() {
+			std::vector<Unpatch> unpatches = std::exchange(allUnpatches, {});
+			for (const Unpatch& u : unpatches) {
+				u.Execute();
+			}
+		}
+	};
+
+	std::vector<Unpatch> Unpatch::allUnpatches = {};
+
+	void PatchBytes(void* targetAddr, std::span<std::byte const> data) {
+		if (!targetAddr) {
+			Log(WARNING, false, "Failed to write patch! Turn on p2sm_developer for more info...");
+			return;
+		}
+
+		Unpatch::Save(targetAddr, data.size());
+		Memory::Write(targetAddr, data);
+	}
+
+	void PatchPattern(std::string target_module, std::string patternBytes, std::string replace_with)
+	{
+		void* addr = Memory::Scanner::Scan<void*>(Memory::Modules::Get(target_module), patternBytes);
+		if (!addr)
+		{
+			Log(WARNING, false, "Failed to replace pattern! Turn on p2sm_developer for more info...");
+			Log(WARNING, true, "Target Module: %s", target_module.c_str());
+			Log(WARNING, true, "Pattern Bytes To Find: %s", patternBytes.c_str());
+			Log(WARNING, true, "Bytes To Replace Pattern Bytes With: %s", replace_with.c_str());
+			return;
+		}
+
+		std::vector<std::byte> replace;
+
+		std::istringstream patternStream(replace_with);
+		std::string patternByte;
+		while (patternStream >> patternByte)
+		{
+			replace.push_back((std::byte)std::stoul(patternByte, nullptr, 16));
+		}
+
+		Memory::PatchBytes(addr, replace);
+	}
+
+	void UnpatchAll() {
+		Unpatch::ExecuteAll();
 	}
 };

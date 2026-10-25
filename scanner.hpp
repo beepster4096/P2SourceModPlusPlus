@@ -49,7 +49,7 @@ namespace Memory {
 		static std::unordered_map<std::string, std::span<uint8_t>> loadedModules;
 	};
 
-	void Write(void* target_addr, const void* data, size_t data_size);
+	void Write(void* targetAddr, std::span<std::byte const> data);
 	void ReplacePattern(std::string target_module, std::string patternBytes, std::string replace_with);
 
 	
@@ -57,6 +57,10 @@ namespace Memory {
 		auto rel = reinterpret_cast<uintptr_t>(relPtr);
 		return reinterpret_cast<T>(rel + *reinterpret_cast<int32_t*>(rel) + sizeof(int32_t));
 	}
+
+	void PatchBytes(void* targetAddr, std::span<std::byte const> data);
+	void PatchPattern(std::string target_module, std::string patternBytes, std::string replace_with);
+	void UnpatchAll();
 };
 
 #endif // SCANNER_HPP
