@@ -49,6 +49,7 @@ namespace Memory {
 		static std::unordered_map<std::string, std::span<uint8_t>> loadedModules;
 	};
 
+	void Write(void* target_addr, const void* data, size_t data_size);
 	void ReplacePattern(std::string target_module, std::string patternBytes, std::string replace_with);
 
 	

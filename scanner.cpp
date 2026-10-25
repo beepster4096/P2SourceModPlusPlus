@@ -401,6 +401,15 @@ namespace Memory {
 		}
 	}
 
+	void Write(void* target_addr, const void* data, size_t data_size)
+	{
+		DWORD oldprotect = 0;
+		DWORD newprotect = PAGE_EXECUTE_READWRITE;
+		VirtualProtect(target_addr, data_size, newprotect, &oldprotect);
+		memcpy_s(target_addr, data_size, data, data_size);
+		VirtualProtect(target_addr, data_size, oldprotect, &newprotect);
+	}
+
 	void ReplacePattern(std::string target_module, std::string patternBytes, std::string replace_with)
 	{
 		void* addr = Memory::Scanner::Scan<void*>(Memory::Modules::Get(target_module), patternBytes);
@@ -422,10 +431,6 @@ namespace Memory {
 			replace.push_back((uint8_t)std::stoul(patternByte, nullptr, 16));
 		}
 
-		DWORD oldprotect = 0;
-		DWORD newprotect = PAGE_EXECUTE_READWRITE;
-		VirtualProtect(addr, replace.size(), newprotect, &oldprotect);
-		memcpy_s(addr, replace.size(), replace.data(), replace.size());
-		VirtualProtect(addr, replace.size(), oldprotect, &newprotect);
+		Memory::Write(addr, replace.data(), replace.size());
 	}
 };
