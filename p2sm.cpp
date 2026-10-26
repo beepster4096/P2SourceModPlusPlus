@@ -94,22 +94,25 @@ bool CP2SMPlusPlusPlugin::Load(CreateInterfaceFn interfaceFactory, CreateInterfa
 		Memory::PatchPattern("vscript", "00 00 00 E0 51 B8 9E 3F", "9a 99 99 99 99 99 a9 3f");
 
 		// lasers are too long, causing an issue when portals are on both sides of a thin surface
-		//Log(INFO, true, "Patching laser length (server)...");
-		//Memory::ReplacePattern("server", "D7 B3 5D 47", "00 00 C8 45"); // 56755.83984375 -> 6400.0
-		//Log(INFO, true, "Patching laser length (client)...");
-		//Memory::ReplacePattern("client", "D7 B3 5D 47", "00 00 C8 45"); // 56755.83984375 -> 6400.0
-
-		Log(INFO, true, "Patching laser length (server)...");
-
 		static float LASER_BUG_PATCHED_TRACE_LENGTH = 6400.0;
 		float* newPtr = &LASER_BUG_PATCHED_TRACE_LENGTH;
 		auto newPtrBytes = std::as_bytes(std::span{ &newPtr, 1 });
 
-		void* laserBugPatchAddr1 = Memory::Scanner::Scan(SERVERDLL, "?? ?? ?? ?? F3 0F 10 18 F3 0F 10 40 04 F3 0F 10 48 08 F3 0F 10 26");
-		Memory::PatchBytes(laserBugPatchAddr1, newPtrBytes);
+		Log(INFO, true, "Patching laser length (server)...");
+		Memory::PatchBytes(
+			Memory::Scanner::Scan(SERVERDLL, "?? ?? ?? ?? F3 0F 10 18 F3 0F 10 40 04 F3 0F 10 48 08 F3 0F 10 26"),
+			newPtrBytes
+		);
+		Memory::PatchBytes(
+			Memory::Scanner::Scan(SERVERDLL, "?? ?? ?? ?? F3 0F 10 4D BC F3 0F 10 55 C0 F3 0F 10 5D C4"),
+			newPtrBytes
+		);
 
-		void* laserBugPatchAddr2 = Memory::Scanner::Scan(SERVERDLL, "?? ?? ?? ?? F3 0F 10 4D BC F3 0F 10 55 C0 F3 0F 10 5D C4");
-		Memory::PatchBytes(laserBugPatchAddr2, newPtrBytes);
+		Log(INFO, true, "Patching laser length (client)...");
+		Memory::PatchBytes(
+			Memory::Scanner::Scan(CLIENTDLL, "?? ?? ?? ?? F3 0F 10 1D ?? ?? ?? ?? 84 C0 75 08 84 D2"),
+			newPtrBytes
+		);
 #else // Linux Hooking. Due to the way this plugin is structured, it's currently not possible to compile this for Linux. Literally 1984 I know, but I don't have enough time or experience to figure it out by myself. One day.
 #endif
 
