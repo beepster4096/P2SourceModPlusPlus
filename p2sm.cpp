@@ -105,10 +105,10 @@ bool CP2SMPlusPlusPlugin::Load(CreateInterfaceFn interfaceFactory, CreateInterfa
 		float* newPtr = &LASER_BUG_PATCHED_TRACE_LENGTH;
 		auto newPtrBytes = std::as_bytes(std::span{ &newPtr, 1 });
 
-		void* laserBugPatchAddr1 = Memory::Scanner::Scan(SERVERDLL, "14 28 ?? ?? F3 0F 10 18 F3 0F 10 40 04 F3 0F 10 48 08");
+		void* laserBugPatchAddr1 = Memory::Scanner::Scan(SERVERDLL, "?? ?? ?? ?? F3 0F 10 18 F3 0F 10 40 04 F3 0F 10 48 08 F3 0F 10 26");
 		Memory::PatchBytes(laserBugPatchAddr1, newPtrBytes);
 
-		void* laserBugPatchAddr2 = Memory::Scanner::Scan(SERVERDLL, "14 28 ?? ?? F3 0F 10 4D BC F3 0F 10 55 C0 F3 0F 10 5D C4");
+		void* laserBugPatchAddr2 = Memory::Scanner::Scan(SERVERDLL, "?? ?? ?? ?? F3 0F 10 4D BC F3 0F 10 55 C0 F3 0F 10 5D C4");
 		Memory::PatchBytes(laserBugPatchAddr2, newPtrBytes);
 #else // Linux Hooking. Due to the way this plugin is structured, it's currently not possible to compile this for Linux. Literally 1984 I know, but I don't have enough time or experience to figure it out by myself. One day.
 #endif
